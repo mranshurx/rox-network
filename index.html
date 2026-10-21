@@ -14,6 +14,7 @@
     --dim:#5b5852;
     --dimmer:#3a3834;
     --blood:#7d1a1a;
+    --blood2:#a11f1f;
     --hot:#c02a2a;
     --line:rgba(216,212,202,.09);
     --hair:rgba(216,212,202,.045);
@@ -29,7 +30,7 @@
   }
 
   /* ============================================================
-     GLOBAL LAYERS
+     BASE LAYERS
      ============================================================ */
   .layer{position:fixed;inset:0;pointer-events:none;z-index:0}
   #fog{
@@ -39,7 +40,7 @@
       linear-gradient(180deg,#040406,#090910 50%,#040406);
   }
   #grain{
-    opacity:.055;z-index:2;
+    opacity:.055;z-index:3;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
     animation:grain .9s steps(4) infinite;
   }
@@ -47,17 +48,16 @@
     0%{transform:translate(0,0)}25%{transform:translate(-2%,1%)}
     50%{transform:translate(1%,-2%)}75%{transform:translate(-1%,-1%)}100%{transform:translate(0,0)}
   }
-  #vig{background:radial-gradient(130% 100% at 50% 40%,transparent 26%,rgba(0,0,0,.92));z-index:3}
+  #vig{background:radial-gradient(130% 100% at 50% 40%,transparent 26%,rgba(0,0,0,.92));z-index:5}
 
-  /* world-only atmosphere */
   #wbg{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0;transition:opacity 1.6s}
   #wbg.on{opacity:1}
   #wbg .vein{
     position:absolute;inset:-25%;
     background:
-      radial-gradient(38% 28% at 14% 18%, rgba(125,26,26,.17), transparent 70%),
-      radial-gradient(34% 24% at 86% 72%, rgba(125,26,26,.13), transparent 70%),
-      radial-gradient(52% 40% at 50% 112%, rgba(80,16,16,.16), transparent 70%);
+      radial-gradient(38% 28% at 14% 18%, rgba(125,26,26,.18), transparent 70%),
+      radial-gradient(34% 24% at 86% 72%, rgba(125,26,26,.14), transparent 70%),
+      radial-gradient(52% 40% at 50% 112%, rgba(80,16,16,.17), transparent 70%);
     filter:blur(34px);
     animation:haze 36s ease-in-out infinite alternate;
   }
@@ -72,7 +72,108 @@
   }
   @keyframes scanroll{from{background-position-y:0}to{background-position-y:120px}}
 
-  /* glitch tear overlay */
+  /* ============================================================
+     BLOOD — SHARED DRIP
+     ============================================================ */
+  .drip{
+    position:absolute;top:0;
+    background:linear-gradient(180deg, var(--blood2), rgba(125,26,26,.45));
+    border-radius:0 0 50% 50%/0 0 100% 100%;
+    transform:scaleY(0);transform-origin:top;
+    animation:seep 9s cubic-bezier(.25,.6,.3,1) forwards;
+    will-change:transform;
+  }
+  @keyframes seep{
+    0%{transform:scaleY(0);opacity:0}
+    10%{opacity:1}
+    100%{transform:scaleY(1);opacity:.9}
+  }
+
+  /* ============================================================
+     WET — the permanent blood layer
+     ============================================================ */
+  #wet{position:fixed;inset:0;pointer-events:none;z-index:4;opacity:0;transition:opacity 2.2s}
+  #wet.on{opacity:1}
+
+  /* centre bloom — blood in the middle */
+  #wet .bloom{
+    position:absolute;left:50%;top:32%;width:min(1000px,135vw);aspect-ratio:1;
+    transform:translate(-50%,-50%);
+    background:radial-gradient(circle,
+      rgba(161,31,31,.30), rgba(125,26,26,.14) 38%, rgba(125,26,26,.04) 60%, transparent 74%);
+    filter:blur(46px);
+    animation:breathe 15s ease-in-out infinite;
+  }
+  @keyframes breathe{
+    0%,100%{opacity:.75;transform:translate(-50%,-50%) scale(1)}
+    50%{opacity:1;transform:translate(-50%,-50%) scale(1.09)}
+  }
+  #wet .bloom2{
+    position:absolute;left:50%;top:118%;width:min(1200px,150vw);aspect-ratio:1;
+    transform:translate(-50%,-50%);
+    background:radial-gradient(circle, rgba(125,26,26,.22), transparent 68%);
+    filter:blur(60px);
+  }
+
+  /* vertical seam down the middle */
+  #wet .seam{
+    position:absolute;left:50%;top:0;bottom:0;width:1px;transform:translateX(-50%);
+    background:linear-gradient(180deg,
+      rgba(161,31,31,.55), rgba(125,26,26,.14) 30%,
+      rgba(125,26,26,.30) 55%, rgba(125,26,26,.10) 80%, transparent);
+    opacity:.55;
+  }
+
+  /* wet edges */
+  #wet .sheet{position:absolute}
+  #wet .top{top:0;left:0;right:0;height:150px;
+    background:linear-gradient(180deg, rgba(125,26,26,.78), rgba(125,26,26,.22) 38%, transparent)}
+  #wet .left{top:0;left:0;bottom:0;width:110px;
+    background:linear-gradient(90deg, rgba(125,26,26,.42), rgba(125,26,26,.08) 55%, transparent)}
+  #wet .right{top:0;right:0;bottom:0;width:110px;
+    background:linear-gradient(270deg, rgba(125,26,26,.42), rgba(125,26,26,.08) 55%, transparent)}
+
+  /* corner pools */
+  #wet .cor{position:absolute;width:420px;height:420px;filter:blur(10px)}
+  #wet .cor.tl{top:-90px;left:-90px;
+    background:radial-gradient(circle at 0% 0%, rgba(161,31,31,.60), rgba(125,26,26,.16) 42%, transparent 70%)}
+  #wet .cor.tr{top:-90px;right:-90px;
+    background:radial-gradient(circle at 100% 0%, rgba(161,31,31,.60), rgba(125,26,26,.16) 42%, transparent 70%)}
+  #wet .cor.bl{bottom:-90px;left:-90px;
+    background:radial-gradient(circle at 0% 100%, rgba(161,31,31,.60), rgba(125,26,26,.16) 42%, transparent 70%)}
+  #wet .cor.br{bottom:-90px;right:-90px;
+    background:radial-gradient(circle at 100% 100%, rgba(161,31,31,.60), rgba(125,26,26,.16) 42%, transparent 70%)}
+
+  /* splatter stains */
+  #wet .stain{position:absolute;border-radius:50%;filter:blur(3px);opacity:.4}
+  #wet .s1{top:16%;left:7%;width:26px;height:19px;background:var(--blood)}
+  #wet .s2{top:44%;right:9%;width:34px;height:24px;background:var(--blood2)}
+  #wet .s3{bottom:22%;left:13%;width:18px;height:14px;background:var(--blood)}
+  #wet .s4{top:66%;right:19%;width:12px;height:10px;background:var(--blood2)}
+  #wet .s5{top:8%;right:32%;width:9px;height:7px;background:var(--blood)}
+
+  /* drip containers */
+  #wet .drips,#wetOver .drips{position:absolute;top:0;height:0}
+  #wet .dtop{left:0;right:0}
+  #wet .dleft{left:0;width:80px}
+  #wet .dright{right:0;width:80px}
+  #wet .dcenter{left:30%;right:30%}
+  #wet .dmid{left:12%;right:12%;top:22%}
+
+  /* ============================================================
+     WET OVER — drips on top of the UI
+     ============================================================ */
+  #wetOver{position:fixed;inset:0;pointer-events:none;z-index:48;opacity:0;transition:opacity 2.2s}
+  #wetOver.on{opacity:1}
+  #wetOver .drips{position:absolute;top:0;height:0}
+  #wetOver .otop{left:0;right:0}
+  #wetOver .ocorner-l{left:0;width:130px}
+  #wetOver .ocorner-r{right:0;width:130px}
+  #wetOver .drip{background:linear-gradient(180deg, var(--hot), rgba(161,31,31,.55));opacity:.85}
+
+  /* ============================================================
+     GLITCH
+     ============================================================ */
   #glitch{position:fixed;inset:0;z-index:55;pointer-events:none;opacity:0;mix-blend-mode:screen}
   #glitch.on{animation:gl .3s steps(2)}
   @keyframes gl{
@@ -86,16 +187,16 @@
   }
 
   /* ============================================================
-     BLOOD
+     ERROR BLEED (still fires on failure)
      ============================================================ */
-  #blood{position:fixed;top:0;left:0;right:0;z-index:60;pointer-events:none;opacity:0;transition:opacity .7s}
+  #blood{position:fixed;top:0;left:0;right:0;z-index:62;pointer-events:none;opacity:0;transition:opacity .7s}
   #blood.on{opacity:1}
-  #blood .sheet{height:180px;background:linear-gradient(180deg,rgba(125,26,26,.95),rgba(125,26,26,.26) 55%,transparent)}
-  #blood i{position:absolute;top:0;background:var(--blood);
+  #blood .sheet{height:190px;background:linear-gradient(180deg,rgba(161,31,31,.96),rgba(125,26,26,.28) 55%,transparent)}
+  #blood i{position:absolute;top:0;background:var(--blood2);
     border-radius:0 0 50% 50%/0 0 100% 100%;
     transform:scaleY(0);transform-origin:top;
-    animation:drip 2.4s cubic-bezier(.3,.7,.3,1) forwards}
-  @keyframes drip{to{transform:scaleY(1)}}
+    animation:drip2 2.4s cubic-bezier(.3,.7,.3,1) forwards}
+  @keyframes drip2{to{transform:scaleY(1)}}
 
   /* ============================================================
      BOOT
@@ -110,7 +211,7 @@
   #bootlog .bl{color:var(--hot)}
 
   /* ============================================================
-     STAGE / GATE
+     GATE
      ============================================================ */
   #stage{position:relative;z-index:10;min-height:100vh;display:grid;place-items:center;padding:24px}
   .view{transition:opacity .9s, transform .9s}
@@ -155,8 +256,8 @@
   header.top{
     position:sticky;top:0;z-index:35;
     display:flex;align-items:center;gap:26px;flex-wrap:wrap;
-    padding:14px 26px;background:rgba(5,5,7,.82);
-    backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+    padding:14px 26px;background:rgba(5,5,7,.72);
+    backdrop-filter:blur(10px);border-bottom:1px solid rgba(161,31,31,.35);
   }
   header.top .brand{font-size:20px;letter-spacing:.24em;padding-left:.24em}
   header.top .sep{flex:1}
@@ -168,7 +269,7 @@
   @keyframes pulse{0%,100%{opacity:.45}50%{opacity:1}}
 
   .ticker{overflow:hidden;border-bottom:1px solid var(--line);
-    background:linear-gradient(90deg,rgba(125,26,26,.16),transparent 40%,rgba(125,26,26,.16));
+    background:linear-gradient(90deg,rgba(125,26,26,.22),transparent 40%,rgba(125,26,26,.22));
     padding:9px 0}
   .ticker div{display:inline-block;white-space:nowrap;animation:roll 52s linear infinite;
     font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.3em;
@@ -177,14 +278,13 @@
   .ticker em{color:var(--hot);font-style:normal}
   @keyframes roll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-  .wrap{max-width:1680px;margin:0 auto;padding:0 26px 160px}
+  .wrap{max-width:1680px;margin:0 auto;padding:0 26px 170px;position:relative}
 
   /* ---------- hero ---------- */
-  .hero{position:relative;padding:110px 0 96px;overflow:hidden}
+  .hero{position:relative;padding:120px 0 100px}
   .sigil{
-    position:absolute;top:50%;left:50%;width:min(760px,110vw);aspect-ratio:1;
-    transform:translate(-50%,-50%);color:var(--blood);opacity:.11;
-    pointer-events:none;
+    position:absolute;top:50%;left:50%;width:min(780px,112vw);aspect-ratio:1;
+    transform:translate(-50%,-50%);color:var(--hot);opacity:.20;pointer-events:none;
   }
   .sigil svg{position:absolute;inset:0;width:100%;height:100%}
   .sigil .r1{animation:spin 90s linear infinite}
@@ -195,8 +295,7 @@
     font-size:clamp(38px,6.4vw,86px);margin-bottom:30px}
   .glitch{position:relative;display:block}
   .glitch::before,.glitch::after{
-    content:attr(data-t);position:absolute;left:0;top:0;width:100%;
-    pointer-events:none;
+    content:attr(data-t);position:absolute;left:0;top:0;width:100%;pointer-events:none;
   }
   .glitch::before{color:var(--hot);clip-path:inset(0 0 58% 0);animation:g1 5.5s steps(2) infinite}
   .glitch::after{color:#4d7f92;clip-path:inset(58% 0 0 0);animation:g2 4.3s steps(2) infinite}
@@ -216,13 +315,15 @@
   }
   .hero .sub{position:relative;max-width:660px;font-size:18px;line-height:1.85;
     color:var(--dim);font-style:italic;margin-bottom:40px}
-  .redact{background:#131318;color:transparent;border-bottom:1px solid var(--blood);
+  .redact{background:#1a0a0a;color:transparent;border-bottom:1px solid var(--blood);
     padding:0 3px;transition:color .5s,background .5s;cursor:help}
   .redact:hover{color:var(--bone);background:transparent}
   .hstats{position:relative;display:flex;flex-wrap:wrap;gap:14px 42px;
     font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.3em;
-    color:var(--dimmer);text-transform:uppercase;border-top:1px solid var(--line);padding-top:22px}
+    color:var(--dimmer);text-transform:uppercase;
+    border-top:1px solid rgba(161,31,31,.4);padding-top:22px}
   .hstats b{color:var(--hot);font-weight:400}
+  .hdrip{position:absolute;left:0;right:0;top:0;height:0}
 
   /* ---------- rail ---------- */
   #rail{position:fixed;left:30px;top:50%;transform:translateY(-50%);
@@ -233,7 +334,7 @@
     display:flex;align-items:center;gap:10px;transition:color .3s}
   #rail a::before{content:"";width:14px;height:1px;background:var(--dimmer);transition:.3s}
   #rail a:hover{color:var(--bone)}
-  #rail a:hover::before{width:26px;background:var(--blood)}
+  #rail a:hover::before{width:26px;background:var(--hot)}
   #rail a em{font-style:normal;opacity:0;transition:opacity .3s;white-space:nowrap;font-size:9px}
   #rail a:hover em{opacity:1}
   @media (min-width:1200px){
@@ -242,23 +343,25 @@
   }
 
   /* ---------- sections ---------- */
-  .sect{margin-bottom:86px;position:relative;scroll-margin-top:110px}
+  .sect{margin-bottom:92px;position:relative;scroll-margin-top:110px}
   .shead{position:relative;display:flex;align-items:baseline;gap:20px;
-    padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:28px}
+    padding-bottom:16px;border-bottom:1px solid rgba(161,31,31,.34);margin-bottom:28px}
   .shead .ghost{position:absolute;right:0;top:-38px;font-size:88px;font-weight:300;
-    color:var(--blood);opacity:.09;pointer-events:none;line-height:1}
-  .shead .num{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.3em;color:var(--blood)}
+    color:var(--blood);opacity:.13;pointer-events:none;line-height:1}
+  .shead .num{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.3em;color:var(--hot)}
   .shead h2{font-size:23px;font-weight:300;letter-spacing:.26em;text-transform:uppercase;padding-left:.26em}
   .shead .cnt{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:10px;
     letter-spacing:.26em;color:var(--dimmer);text-transform:uppercase}
+  .sdrip{position:absolute;left:0;right:0;bottom:-1px;height:0;pointer-events:none}
 
-  .grid{display:grid;gap:1px;background:var(--hair);
+  .grid{display:grid;gap:1px;background:rgba(161,31,31,.14);
     grid-template-columns:repeat(auto-fill,minmax(258px,1fr))}
 
   .card{
-    position:relative;background:var(--void);border:0;text-align:left;cursor:pointer;
+    position:relative;background:rgba(6,6,9,.72);border:0;text-align:left;cursor:pointer;
     padding:22px 20px 18px;display:flex;flex-direction:column;gap:9px;min-height:172px;
     font-family:inherit;color:inherit;letter-spacing:normal;overflow:hidden;
+    backdrop-filter:blur(2px);
     opacity:0;transform:translateY(18px);
     animation:rise .75s cubic-bezier(.2,.8,.2,1) forwards;
     animation-delay:calc(var(--i) * 42ms);
@@ -266,12 +369,12 @@
   }
   @keyframes rise{to{opacity:1;transform:none}}
   .card::after{content:"";position:absolute;left:0;top:0;bottom:0;width:1px;
-    background:var(--blood);transform:scaleY(0);transform-origin:top;transition:transform .5s}
+    background:var(--hot);transform:scaleY(0);transform-origin:top;transition:transform .5s}
   .card .sweep{position:absolute;inset:0;pointer-events:none;overflow:hidden}
   .card .sweep::before{content:"";position:absolute;top:0;bottom:0;width:70px;
     background:linear-gradient(90deg,transparent,rgba(216,212,202,.07),transparent);
     transform:translateX(-90px);transition:transform .8s cubic-bezier(.2,.7,.2,1)}
-  .card:hover{background:#0c0c11}
+  .card:hover{background:rgba(14,10,12,.85)}
   .card:hover::after{transform:scaleY(1)}
   .card:hover .sweep::before{transform:translateX(360px)}
   .card .code{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.26em;color:var(--dimmer)}
@@ -280,19 +383,21 @@
   .card .mt{display:flex;align-items:center;gap:9px;font-family:"JetBrains Mono",monospace;
     font-size:9.5px;letter-spacing:.24em;color:var(--dimmer);text-transform:uppercase}
   .card .dot{width:4px;height:4px;border-radius:50%;background:var(--dim);flex:none}
-  .card.st-hot .dot{background:var(--hot);box-shadow:0 0 6px var(--hot)}
-  .card.st-hot .code{color:var(--blood)}
+  .card.st-hot .dot{background:var(--hot);box-shadow:0 0 7px var(--hot)}
+  .card.st-hot .code{color:var(--blood2)}
   .card.st-dead .nm{color:#4c4a46}
   .card.st-dead .dot{background:#2a2926}
   .card .lock{position:absolute;top:18px;right:18px;font-size:12px;color:var(--dimmer);transition:color .4s}
   .card:hover .lock{color:var(--hot)}
   .card.open::after{transform:scaleY(1)}
-  .card.open .lock{color:var(--hot);text-shadow:0 0 8px rgba(192,42,42,.7)}
+  .card.open .lock{color:var(--hot);text-shadow:0 0 9px rgba(192,42,42,.8)}
   .card.open .mt::before{content:"OPEN";color:var(--hot)}
 
   .foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;
     font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.3em;
-    color:var(--dimmer);text-transform:uppercase;border-top:1px solid var(--line);padding-top:24px}
+    color:var(--dimmer);text-transform:uppercase;
+    border-top:1px solid rgba(161,31,31,.35);padding-top:24px;position:relative}
+  .fdrip{position:absolute;left:0;right:0;top:0;height:0}
 
   /* ============================================================
      MODAL
@@ -300,23 +405,24 @@
   #modal{position:fixed;inset:0;z-index:70;display:none;place-items:center;padding:24px;
     background:rgba(3,3,5,.92);backdrop-filter:blur(8px)}
   #modal.on{display:grid}
-  .panel{width:min(620px,94vw);background:#08080b;border:1px solid var(--line);
+  .panel{width:min(620px,94vw);background:#08070a;border:1px solid rgba(161,31,31,.32);
     position:relative;opacity:0;transform:translateY(14px) scale(.985);
     transition:opacity .5s,transform .5s;overflow:hidden}
   #modal.on .panel{opacity:1;transform:none}
-  .panel::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;
-    background:linear-gradient(90deg,transparent,var(--blood),transparent)}
+  .panel::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;
+    background:linear-gradient(90deg,transparent,var(--hot),transparent)}
   .panel::after{content:"";position:absolute;inset:0;pointer-events:none;
     background:repeating-linear-gradient(180deg, rgba(255,255,255,.016) 0 1px, transparent 1px 3px)}
-  .cor{position:absolute;width:11px;height:11px;pointer-events:none;opacity:.5}
-  .cor.tl{top:7px;left:7px;border-top:1px solid var(--blood);border-left:1px solid var(--blood)}
-  .cor.tr{top:7px;right:7px;border-top:1px solid var(--blood);border-right:1px solid var(--blood)}
-  .cor.bl{bottom:7px;left:7px;border-bottom:1px solid var(--blood);border-left:1px solid var(--blood)}
-  .cor.br{bottom:7px;right:7px;border-bottom:1px solid var(--blood);border-right:1px solid var(--blood)}
+  .pdrips{position:absolute;left:0;right:0;top:0;height:0;z-index:2}
+  .cor{position:absolute;width:12px;height:12px;pointer-events:none;opacity:.7}
+  .cor.tl{top:7px;left:7px;border-top:1px solid var(--hot);border-left:1px solid var(--hot)}
+  .cor.tr{top:7px;right:7px;border-top:1px solid var(--hot);border-right:1px solid var(--hot)}
+  .cor.bl{bottom:7px;left:7px;border-bottom:1px solid var(--hot);border-left:1px solid var(--hot)}
+  .cor.br{bottom:7px;right:7px;border-bottom:1px solid var(--hot);border-right:1px solid var(--hot)}
 
   .pbody{padding:40px 36px;position:relative}
   .ptag{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.42em;
-    color:var(--blood);text-transform:uppercase;margin-bottom:14px}
+    color:var(--hot);text-transform:uppercase;margin-bottom:14px}
   .ptitle{font-size:32px;font-weight:300;letter-spacing:.02em;margin-bottom:8px;line-height:1.15}
   .psub{font-size:16px;color:var(--dim);font-style:italic;margin-bottom:26px}
   .pdiv{height:1px;background:var(--line);margin-bottom:26px}
@@ -330,7 +436,7 @@
   .plock{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.32em;
     color:var(--dim);text-transform:uppercase;margin-bottom:14px}
   #pwform{display:flex;border-bottom:1px solid var(--line)}
-  #pwform:focus-within{border-bottom-color:var(--blood)}
+  #pwform:focus-within{border-bottom-color:var(--hot)}
   #pw{flex:1;font-size:15px;letter-spacing:.34em;color:var(--bone);padding:13px 2px;caret-color:var(--hot)}
   #pw::placeholder{color:var(--dimmer);letter-spacing:.34em}
   .pmsg{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.24em;
@@ -353,8 +459,8 @@
   #toasts{position:fixed;right:24px;bottom:22px;z-index:50;display:flex;
     flex-direction:column;gap:10px;align-items:flex-end;pointer-events:none}
   .toast{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.24em;
-    text-transform:uppercase;color:var(--dim);background:rgba(8,8,11,.9);
-    border:1px solid var(--line);border-left:1px solid var(--blood);
+    text-transform:uppercase;color:var(--dim);background:rgba(10,6,8,.92);
+    border:1px solid var(--line);border-left:1px solid var(--hot);
     padding:10px 15px;opacity:0;transform:translateX(14px);
     animation:tin .5s forwards}
   .toast.out{animation:tout .5s forwards}
@@ -362,22 +468,23 @@
   @keyframes tout{to{opacity:0;transform:translateX(14px)}}
   .toast b{color:var(--hot);font-weight:400}
 
-  #presence{position:fixed;left:24px;bottom:16px;z-index:25;opacity:0;transition:opacity .8s;
+  #presence{position:fixed;left:24px;bottom:16px;z-index:26;opacity:0;transition:opacity .8s;
     font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.26em;
     color:var(--dimmer);text-transform:uppercase}
   #presence.on{opacity:1}
-  #presence b{color:var(--blood);font-weight:400}
+  #presence b{color:var(--hot);font-weight:400}
 
-  ::selection{background:rgba(125,26,26,.55)}
+  ::selection{background:rgba(161,31,31,.55)}
 
   @media (max-width:640px){
-    .wrap{padding:0 18px 110px}
+    .wrap{padding:0 18px 120px}
     header.top{padding:12px 16px;gap:16px}
     .pbody{padding:30px 22px}
     .pfoot{padding:12px 22px}
-    .hero{padding:70px 0 60px}
+    .hero{padding:76px 0 64px}
     .shead .ghost{font-size:56px;top:-24px}
     #toasts{right:14px;bottom:14px}
+    #wet .left,#wet .right{width:60px}
   }
 </style>
 </head>
@@ -385,14 +492,40 @@
 <div class="layer" id="fog"></div>
 <div id="wbg"><div class="vein"></div><div class="scan"></div></div>
 <div class="layer" id="grain"></div>
+
+<!-- permanent blood -->
+<div id="wet">
+  <div class="bloom"></div>
+  <div class="bloom2"></div>
+  <div class="seam"></div>
+  <div class="sheet top"></div>
+  <div class="sheet left"></div>
+  <div class="sheet right"></div>
+  <div class="cor tl"></div><div class="cor tr"></div>
+  <div class="cor bl"></div><div class="cor br"></div>
+  <div class="stain s1"></div><div class="stain s2"></div>
+  <div class="stain s3"></div><div class="stain s4"></div><div class="stain s5"></div>
+  <div class="drips dtop"></div>
+  <div class="drips dleft"></div>
+  <div class="drips dright"></div>
+  <div class="drips dcenter"></div>
+  <div class="drips dmid"></div>
+</div>
+
 <div class="layer" id="vig"></div>
 <div id="glitch"></div>
 <div id="blood"><div class="sheet"></div></div>
 
+<!-- blood on top of the UI -->
+<div id="wetOver">
+  <div class="drips otop"></div>
+  <div class="drips ocorner-l"></div>
+  <div class="drips ocorner-r"></div>
+</div>
+
 <div id="boot"><div id="bootlog"></div></div>
 
 <div id="stage">
-  <!-- ========== GATE ========== -->
   <main class="view" id="gate">
     <div class="stamp">node&nbsp;07&nbsp;·&nbsp;closed&nbsp;circuit</div>
     <h1 class="wordmark">CYBER&nbsp;ROX</h1>
@@ -407,7 +540,6 @@
   </main>
 </div>
 
-<!-- ========== WORLD ========== -->
 <div id="world" hidden>
   <header class="top">
     <div class="brand">CYBER ROX</div>
@@ -450,6 +582,7 @@
         Every door is sealed — pick one, and it will ask you for the password.
       </p>
       <div class="hstats">
+        <div class="hdrip" id="hdrip"></div>
         <span>nodes <b>54</b></span>
         <span>sectors <b>07</b></span>
         <span>escrow <b>sealed</b></span>
@@ -462,15 +595,16 @@
     <div id="sections"></div>
 
     <div class="foot">
+      <div class="fdrip" id="fdrip"></div>
       <span>cyber rox · node 07 · closed circuit</span>
       <span id="footOpen">0 of 54 unlocked</span>
     </div>
   </div>
 </div>
 
-<!-- ========== MODAL ========== -->
 <div id="modal" role="dialog" aria-modal="true">
   <div class="panel" id="panel">
+    <div class="pdrips" id="pdrips"></div>
     <span class="cor tl"></span><span class="cor tr"></span>
     <span class="cor bl"></span><span class="cor br"></span>
     <div class="pbody">
@@ -518,11 +652,11 @@ function readJSON(k, fb){
 /* ============================================================
    CONFIG
    ============================================================ */
-const STRICT   = false;
+const STRICT    = false;
 const WHITELIST = ["ROX-4K2M-9TX7","ROX-9P3X-2QZR"];
-const PASSWORD = "4345789987654323";
-const ALPHA    = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-const PREFIX   = "ROX";
+const PASSWORD  = "4345789987654323";
+const ALPHA     = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const PREFIX    = "ROX";
 
 function seal(seed){
   let h = 2166136261 >>> 0;
@@ -622,20 +756,38 @@ const MARKET = [
 const $ = id => document.getElementById(id);
 const blood = $("blood");
 
+/* build drips into any container */
+function seep(el, n, cfg){
+  if (!el) return;
+  cfg = cfg || {};
+  for (let i=0;i<n;i++){
+    const d = document.createElement("div");
+    d.className = "drip";
+    d.style.left = (Math.random()*100).toFixed(2) + "%";
+    d.style.width = ((cfg.w0||2) + Math.random()*((cfg.w1||4)-(cfg.w0||2))).toFixed(2) + "px";
+    d.style.height = ((cfg.h0||40) + Math.random()*((cfg.h1||180)-(cfg.h0||40))).toFixed(0) + "px";
+    d.style.animationDelay = (Math.random()*(cfg.d||4)).toFixed(2) + "s";
+    d.style.animationDuration = ((cfg.t0||5) + Math.random()*((cfg.t1||9)-(cfg.t0||5))).toFixed(2) + "s";
+    if (cfg.op) d.style.opacity = cfg.op;
+    el.appendChild(d);
+  }
+}
+
+/* error bleed */
 function bleed(){
   blood.querySelectorAll("i").forEach(n => n.remove());
-  for (let i=0;i<8;i++){
+  for (let i=0;i<9;i++){
     const d = document.createElement("i");
     d.style.left = (3 + Math.random()*94) + "%";
-    d.style.width = (2 + Math.random()*5).toFixed(1) + "px";
-    d.style.height = (70 + Math.random()*220) + "px";
+    d.style.width = (2 + Math.random()*6).toFixed(1) + "px";
+    d.style.height = (80 + Math.random()*240) + "px";
     d.style.animationDelay = (Math.random()*.9).toFixed(2) + "s";
     d.style.animationDuration = (1.5 + Math.random()*2.2).toFixed(2) + "s";
     blood.appendChild(d);
   }
   blood.classList.add("on");
   clearTimeout(bleed._t);
-  bleed._t = setTimeout(() => blood.classList.remove("on"), 4200);
+  bleed._t = setTimeout(() => blood.classList.remove("on"), 4300);
 }
 function shake(el){ el.classList.add("shake"); setTimeout(()=>el.classList.remove("shake"),450); }
 function glitch(){
@@ -653,6 +805,7 @@ const BOOTLINES = [
   "sectors ........... <b>07</b>",
   "nodes ............. <b>54</b>",
   "escrow ............ <b>sealed</b>",
+  "pressure .......... <span class='bl'>rising</span>",
   "floor ............. <span class='bl'>open</span>"
 ];
 function runBoot(){
@@ -728,18 +881,37 @@ $("mint").addEventListener("click", e => {
 let booted = false, timers = false;
 const unlocked = new Set(readJSON("crxOpen", []));
 
+/* generate every permanent blood drip, once */
+function buildWet(){
+  seep($("wet").querySelector(".dtop"),    26, {h0:40,h1:300,w0:1.6,w1:6,t0:5,t1:13,d:6});
+  seep($("wet").querySelector(".dleft"),   12, {h0:80,h1:420,w0:2,w1:7,t0:6,t1:14,d:6});
+  seep($("wet").querySelector(".dright"),  12, {h0:80,h1:420,w0:2,w1:7,t0:6,t1:14,d:6});
+  seep($("wet").querySelector(".dcenter"), 10, {h0:30,h1:220,w0:1.4,w1:5,t0:6,t1:13,d:7});
+  seep($("wet").querySelector(".dmid"),     8, {h0:20,h1:150,w0:1.2,w1:4,t0:7,t1:15,d:8});
+
+  seep($("wetOver").querySelector(".otop"),      18, {h0:30,h1:190,w0:1.4,w1:4.5,t0:5,t1:11,d:6,op:.85});
+  seep($("wetOver").querySelector(".ocorner-l"),  8, {h0:60,h1:260,w0:2,w1:6,t0:5,t1:12,d:5,op:.9});
+  seep($("wetOver").querySelector(".ocorner-r"),  8, {h0:60,h1:260,w0:2,w1:6,t0:5,t1:12,d:5,op:.9});
+
+  seep($("hdrip"), 6, {h0:20,h1:90,w0:1.2,w1:3.2,t0:6,t1:12,d:4,op:.75});
+  seep($("fdrip"), 7, {h0:20,h1:110,w0:1.2,w1:3.4,t0:6,t1:12,d:4,op:.75});
+  seep($("pdrips"), 7, {h0:18,h1:80,w0:1.2,w1:3,t0:6,t1:12,d:3,op:.85});
+}
+
 function enterWorld(id){
-  if (!booted){ buildWorld(); buildRail(); booted = true; }
+  if (!booted){ buildWorld(); buildRail(); buildWet(); booted = true; }
   runBoot();
   gate.classList.add("out");
   setTimeout(() => { gate.hidden = true; $("stage").style.display = "none"; }, 700);
   $("world").hidden = false;
   $("wbg").classList.add("on");
+  $("wet").classList.add("on");
+  $("wetOver").classList.add("on");
   $("rail").classList.add("on");
   $("presence").classList.add("on");
   requestAnimationFrame(() => $("world").classList.add("in"));
   setTimeout(glitch, 1500);
-  setTimeout(bleed, 1700);
+  setTimeout(bleed, 1800);
   refreshCount();
   if (!timers){ startClock(); startPresence(); startToasts(); startGlitch(); startSpotlight(); timers = true; }
 }
@@ -770,7 +942,10 @@ function buildWorld(){
     s.innerHTML =
       '<header class="shead"><span class="ghost">' + sec.s + '</span>' +
       '<span class="num">' + sec.s + '</span><h2>' + sec.title + '</h2>' +
-      '<span class="cnt">' + sec.items.length + ' nodes</span></header><div class="grid"></div>';
+      '<span class="cnt">' + sec.items.length + ' nodes</span>' +
+      '<div class="sdrip"></div></header><div class="grid"></div>';
+    seep(s.querySelector(".sdrip"), 6, {h0:14,h1:80,w0:1.2,w1:3.2,t0:6,t1:13,d:5,op:.7});
+
     const g = s.querySelector(".grid");
     sec.items.forEach((it, i) => {
       const open = unlocked.has(it.c);
@@ -923,14 +1098,13 @@ function startToasts(){
     }, 7000 + Math.random()*9000);
   })();
 }
-
 function startSpotlight(){
-  let x = 50, y = 30, raf = false;
+  let raf = false;
   const hero = $("hero");
   if (!hero) return;
   window.addEventListener("mousemove", e => {
-    x = (e.clientX / window.innerWidth) * 100;
-    y = ((e.clientY + window.scrollY - hero.offsetTop) / hero.offsetHeight) * 100;
+    const x = (e.clientX / window.innerWidth) * 100;
+    const y = ((e.clientY + window.scrollY - hero.offsetTop) / hero.offsetHeight) * 100;
     if (!raf){
       raf = true;
       requestAnimationFrame(() => {
@@ -951,6 +1125,8 @@ $("logout").addEventListener("click", () => {
   $("boot").classList.remove("on");
   $("world").classList.remove("in");
   $("wbg").classList.remove("on");
+  $("wet").classList.remove("on");
+  $("wetOver").classList.remove("on");
   $("rail").classList.remove("on");
   $("presence").classList.remove("on");
   setTimeout(() => {
