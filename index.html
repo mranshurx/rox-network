@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CYBER ROX</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=JetBrains+Mono:wght@300&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#07070a;
+    --bone:#d6d2c8;
+    --bone-dim:#57544f;
+    --blood:#7d1a1a;
+    --blood-hot:#b52626;
+    --line:rgba(214,210,200,.10);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    background:var(--void); color:var(--bone); overflow:hidden;
+    font-family:"Cormorant Garamond",Garamond,serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .layer{position:fixed;inset:0;pointer-events:none}
+  #fog{
+    background:
+      radial-gradient(120% 80% at 50% 118%, rgba(120,118,130,.10), transparent 60%),
+      radial-gradient(70% 50% at 50% 42%, rgba(200,198,190,.05), transparent 70%),
+      linear-gradient(180deg,#050507,#0b0b10 55%,#050507);
+    animation:drift 26s ease-in-out infinite alternate;
+  }
+  @keyframes drift{from{transform:scale(1.02)}to{transform:scale(1.09) translateY(-2%)}}
+  #grain{
+    opacity:.055;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation:grain .9s steps(4) infinite;
+  }
+  @keyframes grain{
+    0%{transform:translate(0,0)}25%{transform:translate(-2%,1%)}
+    50%{transform:translate(1%,-2%)}75%{transform:translate(-1%,-1%)}100%{transform:translate(0,0)}
+  }
+  #vig{background:radial-gradient(120% 100% at 50% 50%,transparent 32%,rgba(0,0,0,.88))}
+
+  /* ---- blood ---- */
+  #blood{position:fixed;top:0;left:0;right:0;z-index:40;pointer-events:none;opacity:0;transition:opacity .8s}
+  #blood.on{opacity:1}
+  #blood .sheet{
+    height:170px;
+    background:linear-gradient(180deg,rgba(125,26,26,.95),rgba(125,26,26,.30) 55%,transparent);
+  }
+  #blood i{
+    position:absolute;top:0;background:var(--blood);
+    border-radius:0 0 50% 50%/0 0 100% 100%;
+    transform:scaleY(0);transform-origin:top;
+    animation:drip 2.4s cubic-bezier(.3,.7,.3,1) forwards;
+  }
+  @keyframes drip{to{transform:scaleY(1)}}
+
+  /* ---- layout ---- */
+  #stage{position:relative;height:100%;display:grid;place-items:center;padding:24px}
+  .view{grid-area:1/1;width:min(560px,92vw);text-align:center;transition:opacity .9s, transform .9s}
+  .view[hidden]{display:none}
+  .out{opacity:0;transform:translateY(-6px);pointer-events:none}
+
+  .stamp{
+    font-family:"JetBrains Mono",monospace;font-size:11px;
+    letter-spacing:.62em;color:var(--bone-dim);text-transform:uppercase;
+    padding-left:.62em;margin-bottom:22px;
+  }
+  .wordmark{
+    font-size:clamp(38px,7vw,64px);font-weight:300;letter-spacing:.14em;
+    padding-left:.14em;line-height:1;margin-bottom:26px;
+  }
+  .rule{height:1px;background:var(--line);margin:0 auto 26px;width:100%}
+  .rule.live{background:linear-gradient(90deg,transparent,var(--blood) 50%,transparent);opacity:.75}
+
+  .prompt{
+    font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.30em;
+    color:var(--bone-dim);text-transform:uppercase;margin-bottom:34px;min-height:1.2em;
+  }
+  .prompt .caret{display:inline-block;width:7px;background:var(--blood-hot);animation:blink 1.35s steps(1) infinite}
+  @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+
+  form{display:flex;gap:0;align-items:stretch;border-bottom:1px solid var(--line)}
+  form:focus-within{border-bottom-color:var(--blood)}
+  input{
+    flex:1;background:none;border:0;outline:0;color:var(--bone);
+    font-family:"JetBrains Mono",monospace;font-size:16px;letter-spacing:.28em;
+    padding:14px 2px;caret-color:var(--blood-hot);text-transform:uppercase;
+  }
+  input::placeholder{color:#3a3834;letter-spacing:.28em}
+  button{
+    background:none;border:0;cursor:pointer;color:var(--bone-dim);
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.28em;
+    padding:14px 4px;transition:color .3s;
+  }
+  button:hover{color:var(--blood-hot)}
+  .msg{
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.22em;
+    color:var(--bone-dim);margin-top:20px;min-height:1.4em;text-transform:uppercase;
+  }
+  .msg.bad{color:var(--blood-hot)}
+  .hint{margin-top:44px;font-size:15px;color:var(--bone-dim);font-style:italic}
+  .hint a{color:var(--bone);text-decoration:none;border-bottom:1px solid var(--blood)}
+  .hint a:hover{color:var(--blood-hot)}
+
+  .shake{animation:shake .42s cubic-bezier(.36,.07,.19,.97)}
+  @keyframes shake{
+    10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}
+    30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}
+  }
+
+  /* ---- inside ---- */
+  #inside{text-align:left;width:min(620px,92vw)}
+  #inside .head{
+    font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.42em;
+    color:var(--bone-dim);text-transform:uppercase;margin-bottom:18px;
+  }
+  #inside .rule{margin:0 0 26px}
+  #inside ul{list-style:none}
+  #inside li{
+    display:flex;justify-content:space-between;gap:20px;
+    padding:11px 0;border-bottom:1px solid rgba(214,210,200,.05);
+    font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.06em;
+  }
+  #inside a{color:var(--bone);text-decoration:none;opacity:.82;transition:opacity .25s}
+  #inside a:hover{opacity:1}
+  #inside li:hover a{color:var(--blood-hot)}
+  #inside .meta{color:#3f3d39;font-size:11px}
+  #inside .dead a{color:#4a4844}
+  .foot{
+    margin-top:40px;display:flex;justify-content:space-between;
+    font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.28em;
+    color:#3a3834;text-transform:uppercase;
+  }
+  #presence{position:fixed;left:22px;bottom:18px;z-index:30;
+    font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.26em;
+    color:#3a3834;text-transform:uppercase}
+  #presence b{color:var(--blood);font-weight:400}
+</style>
+</head>
+<body>
+<div class="layer" id="fog"></div>
+<div class="layer" id="grain"></div>
+<div class="layer" id="vig"></div>
+<div id="blood"><div class="sheet"></div></div>
+
+<div id="stage">
+  <main class="view" id="gate">
+    <div class="stamp">node&nbsp;07&nbsp;·&nbsp;closed&nbsp;circuit</div>
+    <h1 class="wordmark">CYBER&nbsp;ROX</h1>
+    <div class="rule live"></div>
+    <p class="prompt" id="prompt"></p>
+    <form id="form" autocomplete="off">
+      <input id="idfield" spellcheck="false" inputmode="text" maxlength="12" placeholder="ROX-____-____" aria-label="Cyber Rox ID">
+      <button type="submit">SUBMIT</button>
+    </form>
+    <p class="msg" id="msg"></p>
+    <p class="hint">no ID? <a href="#" id="mint">mint one locally</a></p>
+  </main>
+
+  <section class="view" id="inside" hidden>
+    <div class="head" id="welcome"></div>
+    <div class="rule live"></div>
+    <ul>
+      <li><a href="/transmissions/">/transmissions/</a><span class="meta">14 entries</span></li>
+      <li><a href="/logs/">/logs/</a><span class="meta">ongoing</span></li>
+      <li><a href="/relay/">/relay/</a><span class="meta">live</span></li>
+      <li><a href="/fragments/">/fragments/</a><span class="meta">unnumbered</span></li>
+      <li><a href="/origin/">/origin/</a><span class="meta">sealed</span></li>
+      <li class="dead"><a href="/void/">/void/</a><span class="meta">404</span></li>
+    </ul>
+    <div class="foot"><span id="fid"></span><span id="ftime"></span></div>
+  </section>
+</div>
+
+<div id="presence">nodes online: <b id="nodes">3</b></div>
+
+<script>
+/* ============================================================
+   STRICT MODE
+   true  = only IDs you have issued work
+   false = any ID with a valid checksum works (anyone can mint)
+   ============================================================ */
+const STRICT = false;
+const WHITELIST = ["ROX-4K2M-9TX7", "ROX-9P3X-2QZR"];
+
+const ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 32, no I/O/0/1
+const PREFIX = "ROX";
+
+/* FNV-1a -> 4 char seal. deterministic, no server needed. */
+function seal(seed){
+  let h = 2166136261 >>> 0;
+  for (const c of seed){ h ^= c.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; }
+  let out = "";
+  for (let i = 0; i < 4; i++) out += ALPHA[(h >>> (i * 5)) & 31];
+  return out;
+}
+const mint = () => {
+  let b = "";
+  for (let i = 0; i < 4; i++) b += ALPHA[Math.floor(Math.random() * 32)];
+  return `${PREFIX}-${b}-${seal(b)}`;
+};
+const validate = raw => {
+  const v = raw.trim().toUpperCase();
+  if (!/^ROX-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(v)) return false;
+  const [ , body, check ] = v.split("-");
+  if (seal(body) !== check) return false;
+  return STRICT ? WHITELIST.includes(v) : true;
+};
+
+/* ---- typewriter prompt ---- */
+const promptEl = document.getElementById("prompt");
+function type(str, done){
+  promptEl.innerHTML = '<span class="caret">&nbsp;</span>';
+  let i = 0;
+  (function tick(){
+    promptEl.innerHTML = str.slice(0, ++i) + '<span class="caret">&nbsp;</span>';
+    if (i < str.length) setTimeout(tick, 55 + Math.random() * 60);
+    else if (done) done();
+  })();
+}
+
+/* ---- blood ---- */
+const blood = document.getElementById("blood");
+function bleed(){
+  blood.querySelectorAll("i").forEach(n => n.remove());
+  const n = 7;
+  for (let i = 0; i < n; i++){
+    const d = document.createElement("i");
+    d.style.left = (4 + Math.random() * 92) + "%";
+    d.style.width = (2 + Math.random() * 5).toFixed(1) + "px";
+    d.style.height = (60 + Math.random() * 200) + "px";
+    d.style.animationDelay = (Math.random() * .9).toFixed(2) + "s";
+    d.style.animationDuration = (1.6 + Math.random() * 2.2).toFixed(2) + "s";
+    blood.appendChild(d);
+  }
+  blood.classList.add("on");
+  clearTimeout(bleed._t);
+  bleed._t = setTimeout(() => blood.classList.remove("on"), 4200);
+}
+
+/* ---- input mask ---- */
+const field = document.getElementById("idfield");
+field.addEventListener("input", () => {
+  let v = field.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (v.startsWith(PREFIX)) v = v.slice(3);
+  v = v.slice(0, 8);
+  field.value = v.length > 4 ? `${PREFIX}-${v.slice(0,4)}-${v.slice(4)}` : v;
+});
+field.addEventListener("keydown", e => {
+  if (e.key === "Backspace" && /^ROX-.{4}$/.test(field.value)) {
+    field.value = field.value.slice(0, -1); e.preventDefault();
+  }
+});
+
+/* ---- gate logic ---- */
+const msg = document.getElementById("msg");
+const gate = document.getElementById("gate");
+const inside = document.getElementById("inside");
+const form = document.getElementById("form");
+let attempts = 0;
+const FAIL = [
+  "identity not recognized",
+  "identity not recognized",
+  "something answered instead",
+  "identity not recognized",
+  "you have been here before"
+];
+
+form.addEventListener("submit", e => {
+  e.preventDefault();
+  const v = field.value;
+  if (!v || v.length < 12){
+    msg.textContent = "incomplete"; msg.classList.add("bad");
+    gate.classList.add("shake"); setTimeout(()=>gate.classList.remove("shake"),450);
+    return;
+  }
+  if (validate(v)){
+    msg.classList.remove("bad");
+    msg.textContent = "identity confirmed";
+    promptEl.textContent = "WELCOME BACK";
+    blood.classList.remove("on");
+    setTimeout(() => enter(v), 620);
+  } else {
+    attempts++;
+    msg.textContent = FAIL[Math.min(attempts - 1, FAIL.length - 1)];
+    msg.classList.add("bad");
+    gate.classList.add("shake"); setTimeout(()=>gate.classList.remove("shake"),450);
+    bleed();
+    field.select();
+  }
+});
+
+/* ---- enter ---- */
+function enter(id){
+  gate.classList.add("out");
+  setTimeout(() => {
+    gate.hidden = true;
+    inside.hidden = false;
+    requestAnimationFrame(() => inside.classList.remove("out"));
+    document.getElementById("welcome").textContent = "authenticated · " + id;
+    document.getElementById("fid").textContent = "id " + id;
+    tickClock();
+  }, 900);
+  sessionStorage.setItem("crx", id);
+}
+function tickClock(){
+  const el = document.getElementById("ftime");
+  setInterval(() => {
+    const d = new Date();
+    el.textContent = [d.getHours(),d.getMinutes(),d.getSeconds()]
+      .map(n => String(n).padStart(2,"0")).join(":") + " local";
+  }, 1000);
+}
+
+/* ---- mint ---- */
+document.getElementById("mint").addEventListener("click", e => {
+  e.preventDefault();
+  const id = mint();
+  field.value = id; field.focus();
+  msg.classList.remove("bad");
+  msg.textContent = "issued · press submit";
+});
+
+/* ---- presence ---- */
+setInterval(() => {
+  if (Math.random() < .18)
+    document.getElementById("nodes").textContent = 2 + Math.floor(Math.random() * 4);
+}, 9000);
+
+/* ---- boot ---- */
+const saved = sessionStorage.getItem("crx");
+if (saved && validate(saved)) { gate.hidden = true; inside.hidden = false; enter(saved); }
+else type("IDENTITY REQUIRED");
+</script>
+</body>
+</html>
